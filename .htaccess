@@ -1,0 +1,31 @@
+# Disable directory browsing
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymlinks
+    RewriteEngine On
+
+    # Proteksi direktori & file sensitif agar tidak dapat diakses langsung dari browser
+    RewriteRule ^(app|writable|vendor|tests)(/.*)?$ - [F,L]
+    RewriteRule ^(\.env|env|composer\.(json|lock)|database\.sql|spark|preload\.php)$ - [F,L]
+
+    # Arahkan file statis (uploads, favicon, robots.txt) ke dalam folder public/
+    RewriteRule ^(uploads/.*|favicon\.ico|robots\.txt)$ public/$1 [L,NC]
+
+    # Hilangkan trailing slash jika bukan direktori
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Teruskan seluruh request ke front controller index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([\s\S]*)$ index.php/$1 [L,NC,QSA]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 index.php
+</IfModule>
+
+ServerSignature Off
